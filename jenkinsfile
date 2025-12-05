@@ -1,53 +1,33 @@
 pipeline {
-    agent none
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-        stage('Checkout y Verificación') {
-            agent any
+        stage('Frontend - Build & Run') {
             steps {
-                echo 'Descargando el código del repositorio...'
-                checkout scm 
-                echo 'Listando directorios y archivos en el workspace:'
-                sh 'ls -F'
+                dir('frontend') {
+                    sh '/usr/bin/docker build -t frontend-image .'
+                }
+                sh '''
+                    /usr/bin/docker rm -f frontend-container || true
+                    /usr/bin/docker run -d --name frontend-container -p 3000:3000 frontend-image
+                '''
             }
         }
-        
-        stage('levantar front') { 
-            agent {  
-                dockerfile {
-                    dir 'frontend'
-                }
-            }
+
+        stage('Backend - Build & Run') {
             steps {
-                echo 'Construyendo imagen del Frontend...'
-                sh '''
-                    cd frontend
-                    ls -F
-                    docker build -t frontend-image .
-                    docker rm -f frontend-container || true
-                    docker run -d --name frontend-container -p 3000:3000 frontend-image
-                '''
-                echo 'Frontend levantado.'
-            }
-        }
-        
-        stage('levantar back') { 
-            agent {  
-                dockerfile {
-                    dir 'backend'
+                dir('backend') {
+                    sh '/usr/bin/docker build -t backend-image .'
                 }
-            }
-            steps {
-                echo 'Construyendo imagen del Backend...'
                 sh '''
-                    cd backend
-                    ls -F
-                    docker build -t backend-image .
-                    docker rm -f backend-container || true
-                    docker run -d --name backend-container -p 8000:8000 backend-image
+                    /usr/bin/docker rm -f backend-container || true
+                    /usr/bin/docker run -d --name backend-container -p 4000:4000 backend-image
                 '''
-                echo 'Backend levantado.'
             }
         }
     }
