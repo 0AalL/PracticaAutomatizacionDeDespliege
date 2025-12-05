@@ -22,6 +22,7 @@ pipeline {
             steps {
                 echo 'Construyendo imagen del Frontend...'
                 sh '''
+                    cd frontend
                     docker build -t frontend-image .
                     docker rm -f frontend-container || true
                     docker run -d --name frontend-container -p 3000:3000 frontend-image
@@ -39,6 +40,7 @@ pipeline {
             steps {
                 echo 'Construyendo imagen del Backend...'
                 sh '''
+                    cd backend
                     docker build -t backend-image .
                     docker rm -f backend-container || true
                     docker run -d --name backend-container -p 8000:8000 backend-image
