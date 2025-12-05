@@ -1,9 +1,11 @@
 pipeline {
     agent any
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+                sh 'ls -F'
             }
         }
 
@@ -14,7 +16,7 @@ pipeline {
                 }
                 sh '''
                     /usr/bin/docker rm -f frontend-container || true
-                    /usr/bin/docker run -d --name frontend-container -p 3000:3000 frontend-image
+                    /usr/bin/docker run -d --name frontend-container -p 5173:5173 frontend-image
                 '''
             }
         }
@@ -26,7 +28,7 @@ pipeline {
                 }
                 sh '''
                     /usr/bin/docker rm -f backend-container || true
-                    /usr/bin/docker run -d --name backend-container -p 4000:4000 backend-image
+                    /usr/bin/docker run -d --name backend-container -p 3000:3000 backend-image
                 '''
             }
         }
