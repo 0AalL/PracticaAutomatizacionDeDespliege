@@ -2,42 +2,48 @@ pipeline {
     agent none
 
     stages {
-        // --- STAGE 0: Checkout del Código y Verificación ---
+
         stage('Checkout y Verificación') {
             agent any
             steps {
-                // 1. Descarga el código del repositorio
                 echo 'Descargando el código del repositorio...'
                 checkout scm 
-                
-                // 2. Lista los contenidos del directorio de trabajo para verificar
                 echo 'Listando directorios y archivos en el workspace:'
-                sh 'ls -F' 
+                sh 'ls -F'
             }
         }
         
-        // --- STAGE 1: levantar front ---
         stage('levantar front') { 
-            // Usaremos 'Frontend' y 'Backend' con mayúsculas, asumiendo que el 'ls -F' lo confirmará.
             agent {  
                 dockerfile {
-                    dir 'frontend' 
+                    dir 'frontend'
                 }
             }
             steps {
-                echo 'Iniciando Frontend...'
+                echo 'Construyendo imagen del Frontend...'
+                sh '''
+                    docker build -t frontend-image .
+                    docker rm -f frontend-container || true
+                    docker run -d --name frontend-container -p 3000:3000 frontend-image
+                '''
+                echo 'Frontend levantado.'
             }
         }
         
-        // --- STAGE 2: levantar back ---
         stage('levantar back') { 
             agent {  
                 dockerfile {
-                    dir 'backend' 
+                    dir 'backend'
                 }
             }
             steps {
-                echo 'Iniciando Backend...'
+                echo 'Construyendo imagen del Backend...'
+                sh '''
+                    docker build -t backend-image .
+                    docker rm -f backend-container || true
+                    docker run -d --name backend-container -p 8000:8000 backend-image
+                '''
+                echo 'Backend levantado.'
             }
         }
     }
